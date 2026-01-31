@@ -21,10 +21,13 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var index_exports = {};
 __export(index_exports, {
   cn: () => cn,
+  createLogger: () => createLogger,
   getByPath: () => getByPath,
+  logger: () => logger,
   resolveArrayProp: () => resolveArrayProp,
   resolveString: () => resolveString,
-  resolveValueProp: () => resolveValueProp
+  resolveValueProp: () => resolveValueProp,
+  silentLogger: () => silentLogger
 });
 module.exports = __toCommonJS(index_exports);
 
@@ -76,12 +79,91 @@ function resolveString(value) {
   if (typeof value === "number") return String(value);
   return void 0;
 }
+
+// src/logger.ts
+var LOG_LEVELS = {
+  debug: 0,
+  log: 1,
+  warn: 2,
+  error: 3,
+  silent: 4
+};
+var isProduction = process.env.NODE_ENV === "production";
+var debugEnabled = process.env.DEBUG === "true" || process.env.DEBUG === "1";
+var envLogLevel = process.env.LOG_LEVEL;
+function createLogger(config = {}) {
+  const { forceEnabled = false, prefix = "", minLevel } = config;
+  const effectiveMinLevel = minLevel ?? envLogLevel ?? (isProduction && !debugEnabled ? "warn" : "debug");
+  const shouldLog = (level) => {
+    if (forceEnabled || debugEnabled) {
+      return LOG_LEVELS[level] >= LOG_LEVELS.debug;
+    }
+    return LOG_LEVELS[level] >= LOG_LEVELS[effectiveMinLevel];
+  };
+  const formatMessage = (args) => {
+    if (prefix && typeof args[0] === "string") {
+      return [`[${prefix}] ${args[0]}`, ...args.slice(1)];
+    }
+    if (prefix) {
+      return [`[${prefix}]`, ...args];
+    }
+    return args;
+  };
+  return {
+    debug: (...args) => {
+      if (shouldLog("debug")) {
+        console.debug(...formatMessage(args));
+      }
+    },
+    log: (...args) => {
+      if (shouldLog("log")) {
+        console.log(...formatMessage(args));
+      }
+    },
+    warn: (...args) => {
+      if (shouldLog("warn")) {
+        console.warn(...formatMessage(args));
+      }
+    },
+    error: (...args) => {
+      if (shouldLog("error")) {
+        console.error(...formatMessage(args));
+      }
+    },
+    /** Create a child logger with a sub-prefix */
+    child: (childPrefix) => {
+      const newPrefix = prefix ? `${prefix}:${childPrefix}` : childPrefix;
+      return createLogger({ ...config, prefix: newPrefix });
+    },
+    /** Check if logger is in production mode */
+    isProduction,
+    /** Check if debug mode is enabled */
+    isDebugEnabled: debugEnabled || forceEnabled
+  };
+}
+var logger = createLogger();
+var silentLogger = {
+  debug: () => {
+  },
+  log: () => {
+  },
+  warn: () => {
+  },
+  error: () => {
+  },
+  child: () => silentLogger,
+  isProduction: true,
+  isDebugEnabled: false
+};
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   cn,
+  createLogger,
   getByPath,
+  logger,
   resolveArrayProp,
   resolveString,
-  resolveValueProp
+  resolveValueProp,
+  silentLogger
 });
 //# sourceMappingURL=index.cjs.map
