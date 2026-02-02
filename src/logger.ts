@@ -255,3 +255,86 @@ export const loggers = {
   get jobs() { return createLogger({ prefix: "jobs" }); },
   get collab() { return createLogger({ prefix: "collab" }); },
 };
+
+// =============================================================================
+// Performance Monitoring & Tracing
+// =============================================================================
+
+let traceIdCounter = 0;
+
+/**
+ * Generate a unique trace ID for request tracing
+ */
+export function generateTraceId(): string {
+  const timestamp = Date.now().toString(36);
+  const counter = (traceIdCounter++).toString(36).padStart(4, "0");
+  const random = Math.random().toString(36).substring(2, 6);
+  return `${timestamp}-${counter}-${random}`;
+}
+
+/**
+ * Measure execution time of a function
+ */
+export async function measure<T>(
+  label: string,
+  fn: () => Promise<T>,
+  log: Logger = logger,
+): Promise<{ result: T; durationMs: number }> {
+  const start = performance.now();
+  try {
+    const result = await fn();
+    const durationMs = performance.now() - start;
+    log.debug(`${label} completed in ${durationMs.toFixed(2)}ms`);
+    return { result, durationMs };
+  } catch (error) {
+    const durationMs = performance.now() - start;
+    log.error(`${label} failed after ${durationMs.toFixed(2)}ms:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Measure execution time of a sync function
+ */
+export function measureSync<T>(
+  label: string,
+  fn: () => T,
+  log: Logger = logger,
+): { result: T; durationMs: number } {
+  const start = performance.now();
+  try {
+    const result = fn();
+    const durationMs = performance.now() - start;
+    log.debug(`${label} completed in ${durationMs.toFixed(2)}ms`);
+    return { result, durationMs };
+  } catch (error) {
+    const durationMs = performance.now() - start;
+    log.error(`${label} failed after ${durationMs.toFixed(2)}ms:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Create a performance timer
+ */
+export function createTimer(): {
+  elapsed: () => number;
+  elapsedFormatted: () => string;
+} {
+  const start = performance.now();
+  return {
+    elapsed: () => performance.now() - start,
+    elapsedFormatted: () => `${(performance.now() - start).toFixed(2)}ms`,
+  };
+}
+
+/**
+ * Create a logger with trace ID context
+ */
+export function createTracedLogger(
+  traceId: string,
+  basePrefix?: string,
+): Logger {
+  const prefix = basePrefix ? `${basePrefix}|${traceId}` : traceId;
+  return createLogger({ prefix });
+}

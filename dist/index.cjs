@@ -22,9 +22,14 @@ var index_exports = {};
 __export(index_exports, {
   cn: () => cn,
   createLogger: () => createLogger,
+  createTimer: () => createTimer,
+  createTracedLogger: () => createTracedLogger,
+  generateTraceId: () => generateTraceId,
   getByPath: () => getByPath,
   logger: () => logger,
   loggers: () => loggers,
+  measure: () => measure,
+  measureSync: () => measureSync,
   resolveArrayProp: () => resolveArrayProp,
   resolveString: () => resolveString,
   resolveValueProp: () => resolveValueProp,
@@ -240,13 +245,62 @@ var loggers = {
     return createLogger({ prefix: "collab" });
   }
 };
+var traceIdCounter = 0;
+function generateTraceId() {
+  const timestamp = Date.now().toString(36);
+  const counter = (traceIdCounter++).toString(36).padStart(4, "0");
+  const random = Math.random().toString(36).substring(2, 6);
+  return `${timestamp}-${counter}-${random}`;
+}
+async function measure(label, fn, log = logger) {
+  const start = performance.now();
+  try {
+    const result = await fn();
+    const durationMs = performance.now() - start;
+    log.debug(`${label} completed in ${durationMs.toFixed(2)}ms`);
+    return { result, durationMs };
+  } catch (error) {
+    const durationMs = performance.now() - start;
+    log.error(`${label} failed after ${durationMs.toFixed(2)}ms:`, error);
+    throw error;
+  }
+}
+function measureSync(label, fn, log = logger) {
+  const start = performance.now();
+  try {
+    const result = fn();
+    const durationMs = performance.now() - start;
+    log.debug(`${label} completed in ${durationMs.toFixed(2)}ms`);
+    return { result, durationMs };
+  } catch (error) {
+    const durationMs = performance.now() - start;
+    log.error(`${label} failed after ${durationMs.toFixed(2)}ms:`, error);
+    throw error;
+  }
+}
+function createTimer() {
+  const start = performance.now();
+  return {
+    elapsed: () => performance.now() - start,
+    elapsedFormatted: () => `${(performance.now() - start).toFixed(2)}ms`
+  };
+}
+function createTracedLogger(traceId, basePrefix) {
+  const prefix = basePrefix ? `${basePrefix}|${traceId}` : traceId;
+  return createLogger({ prefix });
+}
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   cn,
   createLogger,
+  createTimer,
+  createTracedLogger,
+  generateTraceId,
   getByPath,
   logger,
   loggers,
+  measure,
+  measureSync,
   resolveArrayProp,
   resolveString,
   resolveValueProp,

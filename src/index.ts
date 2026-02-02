@@ -9,5 +9,15 @@ export {
   resolveValueProp,
   resolveString,
 } from "./data-utils";
-export { createLogger, logger, silentLogger, loggers } from "./logger";
+export {
+  createLogger,
+  logger,
+  silentLogger,
+  loggers,
+  generateTraceId,
+  measure,
+  measureSync,
+  createTimer,
+  createTracedLogger,
+} from "./logger";
 export type { LoggerConfig, Logger } from "./logger";

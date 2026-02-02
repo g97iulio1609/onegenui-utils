@@ -104,5 +104,34 @@ declare const loggers: {
     readonly jobs: Logger;
     readonly collab: Logger;
 };
+/**
+ * Generate a unique trace ID for request tracing
+ */
+declare function generateTraceId(): string;
+/**
+ * Measure execution time of a function
+ */
+declare function measure<T>(label: string, fn: () => Promise<T>, log?: Logger): Promise<{
+    result: T;
+    durationMs: number;
+}>;
+/**
+ * Measure execution time of a sync function
+ */
+declare function measureSync<T>(label: string, fn: () => T, log?: Logger): {
+    result: T;
+    durationMs: number;
+};
+/**
+ * Create a performance timer
+ */
+declare function createTimer(): {
+    elapsed: () => number;
+    elapsedFormatted: () => string;
+};
+/**
+ * Create a logger with trace ID context
+ */
+declare function createTracedLogger(traceId: string, basePrefix?: string): Logger;
 
-export { type Logger, type LoggerConfig, cn, createLogger, getByPath, logger, loggers, resolveArrayProp, resolveString, resolveValueProp, silentLogger };
+export { type Logger, type LoggerConfig, cn, createLogger, createTimer, createTracedLogger, generateTraceId, getByPath, logger, loggers, measure, measureSync, resolveArrayProp, resolveString, resolveValueProp, silentLogger };
