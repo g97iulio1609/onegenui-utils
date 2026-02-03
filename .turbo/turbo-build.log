@@ -6,17 +6,17 @@ CLI Building entry: src/index.ts
 CLI Using tsconfig: tsconfig.json
 CLI tsup v8.5.1
 CLI Using tsup config: /Users/giulioleone/Sviluppo/genUi/json-render/packages/utils/tsup.config.ts
-CLI Target: es2020
+CLI Target: es2022
 CLI Cleaning output folder
 CJS Build start
 ESM Build start
-ESM dist/index.js     8.33 KB
-ESM dist/index.js.map 20.36 KB
-ESM ⚡️ Build success in 8ms
 CJS dist/index.cjs     9.94 KB
 CJS dist/index.cjs.map 20.99 KB
 CJS ⚡️ Build success in 8ms
+ESM dist/index.js     8.33 KB
+ESM dist/index.js.map 20.36 KB
+ESM ⚡️ Build success in 8ms
 DTS Build start
-DTS ⚡️ Build success in 358ms
+DTS ⚡️ Build success in 334ms
 DTS dist/index.d.cts 5.09 KB
 DTS dist/index.d.ts  5.09 KB
