@@ -134,4 +134,26 @@ declare function createTimer(): {
  */
 declare function createTracedLogger(traceId: string, basePrefix?: string): Logger;
 
-export { type Logger, type LoggerConfig, cn, createLogger, createTimer, createTracedLogger, generateTraceId, getByPath, logger, loggers, measure, measureSync, resolveArrayProp, resolveString, resolveValueProp, silentLogger };
+/**
+ * URL Security Utilities
+ *
+ * Validates and sanitizes URLs to prevent XSS via javascript: protocol
+ * and other dangerous URL schemes.
+ */
+/**
+ * Checks if a URL is safe for use in href attributes
+ * Blocks javascript:, data:, vbscript: and other dangerous protocols
+ */
+declare function isSafeUrl(url: string | null | undefined): boolean;
+/**
+ * Sanitizes a URL for safe use in href attributes
+ * Returns a safe fallback if the URL is dangerous
+ */
+declare function sanitizeUrl(url: string | null | undefined): string;
+/**
+ * Validates and returns URL only if it uses https protocol
+ * For stricter security contexts
+ */
+declare function validateHttpsUrl(url: string | null | undefined): string | null;
+
+export { type Logger, type LoggerConfig, cn, createLogger, createTimer, createTracedLogger, generateTraceId, getByPath, isSafeUrl, logger, loggers, measure, measureSync, resolveArrayProp, resolveString, resolveValueProp, sanitizeUrl, silentLogger, validateHttpsUrl };

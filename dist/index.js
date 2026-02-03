@@ -250,6 +250,34 @@ function createTracedLogger(traceId, basePrefix) {
   const prefix = basePrefix ? `${basePrefix}|${traceId}` : traceId;
   return createLogger({ prefix });
 }
+
+// src/url-security.ts
+var ALLOWED_PROTOCOLS = ["http:", "https:", "mailto:", "tel:"];
+var DANGEROUS_PROTOCOLS = ["javascript:", "data:", "vbscript:", "file:"];
+function isSafeUrl(url) {
+  if (!url || typeof url !== "string") return false;
+  const trimmed = url.trim().toLowerCase();
+  for (const protocol of DANGEROUS_PROTOCOLS) {
+    if (trimmed.startsWith(protocol)) return false;
+  }
+  if (trimmed.startsWith("/") || trimmed.startsWith("#")) return true;
+  for (const protocol of ALLOWED_PROTOCOLS) {
+    if (trimmed.startsWith(protocol)) return true;
+  }
+  if (trimmed.startsWith("//")) return true;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return false;
+  return true;
+}
+function sanitizeUrl(url) {
+  if (isSafeUrl(url)) return url;
+  return "#";
+}
+function validateHttpsUrl(url) {
+  if (!url || typeof url !== "string") return null;
+  const trimmed = url.trim().toLowerCase();
+  if (trimmed.startsWith("https://")) return url;
+  return null;
+}
 export {
   cn,
   createLogger,
@@ -257,6 +285,7 @@ export {
   createTracedLogger,
   generateTraceId,
   getByPath,
+  isSafeUrl,
   logger,
   loggers,
   measure,
@@ -264,6 +293,8 @@ export {
   resolveArrayProp,
   resolveString,
   resolveValueProp,
-  silentLogger
+  sanitizeUrl,
+  silentLogger,
+  validateHttpsUrl
 };
 //# sourceMappingURL=index.js.map
