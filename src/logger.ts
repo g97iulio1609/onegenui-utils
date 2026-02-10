@@ -67,11 +67,30 @@ const LOG_LEVELS: Record<LogLevel, number> = {
   silent: 4,
 };
 
-const isProduction = process.env.NODE_ENV === "production";
+/**
+ * Runtime-agnostic env access (Node, Vite/browser, Deno, edge workers).
+ * Returns undefined when the variable is not available.
+ */
+function getEnv(key: string): string | undefined {
+  // Node.js / Bun
+  if (typeof process !== "undefined" && process.env) {
+    return process.env[key];
+  }
+  // Vite injects import.meta.env at build time
+  try {
+    const meta = import.meta as unknown as { env?: Record<string, string> };
+    if (meta.env) return meta.env[key];
+  } catch {
+    // import.meta not available in CJS
+  }
+  return undefined;
+}
+
+const isProduction = getEnv("NODE_ENV") === "production";
 const debugEnabled =
-  process.env.DEBUG === "true" || process.env.DEBUG === "1";
-const envLogLevel = process.env.LOG_LEVEL as LogLevel | undefined;
-const envNamespaces = process.env.LOG_NAMESPACES ?? "";
+  getEnv("DEBUG") === "true" || getEnv("DEBUG") === "1";
+const envLogLevel = getEnv("LOG_LEVEL") as LogLevel | undefined;
+const envNamespaces = getEnv("LOG_NAMESPACES") ?? "";
 
 // Parse namespace patterns once at module load
 const { enabledPatterns, disabledPatterns } = parseNamespacePatterns(envNamespaces);
